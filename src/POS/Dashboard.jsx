@@ -116,15 +116,13 @@ const products = [
 const Dashboard = () => {
     const [activeTab, setActiveTab] = useState('products');
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [isMobile, setIsMobile] = useState(false);
-    
+
     // Cart state
     const [cart, setCart] = useState([]);
     const [orders, setOrders] = useState([]);
 
     useEffect(() => {
         const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
             if (window.innerWidth < 768) {
                 setSidebarOpen(false);
             }

@@ -2,7 +2,7 @@ import React from 'react';
 
 const TopProducts = ({ topProducts }) => {
     return (
-        <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="bg-white shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">Top Selling Products</h2>
             <div className="space-y-4">
                 {topProducts.map((product, index) => (

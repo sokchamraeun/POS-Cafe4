@@ -2,19 +2,22 @@
 import React, { useState, useEffect } from 'react';
 import CartItem from './Cartitem';
 
-const Shoppingcart = ({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onCheckout }) => {
+const Shoppingcart = ({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onCheckout, isFullPage = false }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [animated, setAnimated] = useState(false);
 
+    // Convert cartItems object to array
+    const cartItemsArray = Object.values(cartItems);
+
     // Calculate totals
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.cartQty), 0);
+    const subtotal = cartItemsArray.reduce((sum, item) => sum + (item.price * item.cartQty), 0);
     const tax = subtotal * 0.1;
     const total = subtotal + tax;
-    const totalItems = cartItems.reduce((sum, item) => sum + item.cartQty, 0);
+    const totalItems = cartItemsArray.reduce((sum, item) => sum + item.cartQty, 0);
 
     // Animation when cart updates
     useEffect(() => {
-        if (cartItems.length > 0) {
+        if (cartItemsArray.length > 0) {
             const startTimer = setTimeout(() => setAnimated(true), 0);
             const endTimer = setTimeout(() => setAnimated(false), 300);
             return () => {
@@ -22,34 +25,39 @@ const Shoppingcart = ({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, 
                 clearTimeout(endTimer);
             };
         }
-    }, [cartItems]);
+    }, [cartItemsArray]);
 
     return (
         <>
-            {/* Floating Cart Button */}
-            <button
-                onClick={() => setIsOpen(true)}
-                className="fixed bottom-4 right-4 z-40 bg-[#d4af37] text-white p-4 rounded-full shadow-lg hover:bg-yellow-500 transition-all hover:scale-110"
-            >
-                <div className="relative">
-                    <i className="fas fa-shopping-cart text-2xl"></i>
-                    {totalItems > 0 && (
-                        <span className={`absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center ${animated ? 'scale-150' : 'scale-100'} transition-transform`}>
-                            {totalItems}
-                        </span>
-                    )}
-                </div>
-            </button>
+            {/* Floating Cart Button - Only show when not full page */}
+            {!isFullPage && (
+                <button
+                    onClick={() => setIsOpen(true)}
+                    className="fixed bottom-4 right-4 z-40 bg-[#d4af37] text-white p-4 rounded-full shadow-lg hover:bg-yellow-500 transition-all hover:scale-110"
+                >
+                    <div className="relative">
+                        <i className="fas fa-shopping-cart text-2xl"></i>
+                        {totalItems > 0 && (
+                            <span className={`absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center ${animated ? 'scale-150' : 'scale-100'} transition-transform`}>
+                                {totalItems}
+                            </span>
+                        )}
+                    </div>
+                </button>
+            )}
 
             {/* Cart Sidebar */}
-            {isOpen && (
+            {(isOpen || isFullPage) && (
                 <>
-                    <div 
-                        className="fixed inset-0 bg-black bg-opacity-50 z-50"
-                        onClick={() => setIsOpen(false)}
-                    ></div>
+                    {/* Overlay - Only for sidebar mode */}
+                    {!isFullPage && (
+                        <div 
+                            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+                            onClick={() => setIsOpen(false)}
+                        ></div>
+                    )}
 
-                    <div className={`fixed right-0 top-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                    <div className={`fixed ${isFullPage ? 'inset-0 top-20' : 'right-0 top-0 h-full'} w-full ${isFullPage ? 'max-w-4xl mx-auto' : 'sm:w-96'} bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
                         {/* Header */}
                         <div className="flex justify-between items-center p-4 border-b bg-gradient-to-r from-[#d4af37] to-yellow-500 text-white">
                             <div>
@@ -59,12 +67,14 @@ const Shoppingcart = ({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, 
                                 </h2>
                                 <p className="text-sm opacity-90">{totalItems} item(s)</p>
                             </div>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="text-white hover:text-gray-200 text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20"
-                            >
-                                ×
-                            </button>
+                            {!isFullPage && (
+                                <button
+                                    onClick={() => setIsOpen(false)}
+                                    className="text-white hover:text-gray-200 text-2xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/20"
+                                >
+                                    ×
+                                </button>
+                            )}
                         </div>
 
                         {/* Cart Items */}
@@ -85,7 +95,7 @@ const Shoppingcart = ({ cartItems, onUpdateQuantity, onRemoveItem, onClearCart, 
                         ) : (
                             <>
                                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                                    {cartItems.map((item) => (
+                                    {cartItemsArray.map((item) => (
                                         <CartItem 
                                             key={item.id}
                                             item={item}

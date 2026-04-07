@@ -51,10 +51,10 @@ const ProductsGrid = ({ products, onAddToCart, cart, onUpdateQuantity, onQuantit
                     {products.map((product) => (
                         <div 
                             key={product.id} 
-                            className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-amber-200 group"
+                            className="bg-white  shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-amber-200 group"
                         >
                             {/* Product Image - Square with coffee styling */}
-                            <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 rounded-t-2xl">
+                            <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 ">
                                 <img 
                                     src={product.image || 'https://placehold.co/400x400/e2e8f0/64748b?text=Coffee'}
                                     alt={product.name}

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { FaShoppingCart } from 'react-icons/fa';
 import Dashboard from '../POS/Dashboard';
 
-const Navbar = () => {
+const Navbar = ({ cartCount = 0, onCartClick }) => {
 const [isMenuOpen, setIsMenuOpen] = useState(false);
 const [isScrolled, setIsScrolled] = useState(false);
 
@@ -15,7 +15,6 @@ useEffect(() => {
     return () => window.removeEventListener('scroll', handleScroll);
 }, []);
 
-const cartCount = 0;
 const isLoggedIn = false;
 
 return (
@@ -69,14 +68,15 @@ return (
             {/* Column 3: Cart Icon and Login Button (Right aligned) */}
             <div className="flex justify-end items-center space-x-4 sm:space-x-5">
             {/* Modern Cart Icon with Badge */}
-            <Link to="/cart" className="relative group">
-                <div className="relative p-2 rounded-full bg-gray-50 group-hover:bg-amber-50 transition-all duration-300">
-                    <FaShoppingCart className="w-6 h-6 sm:w-6 sm:h-6 text-gray-700 group-hover:text-amber-600 transition" />
-                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold rounded-full min-w-[20px] h-[20px] flex items-center justify-center shadow-lg animate-pulse">
-                        {cartCount} {/* Always show 0 if cart is empty */}
-                    </span>
-                </div>
-            </Link>
+            <button 
+                onClick={onCartClick}
+                className="relative group p-2 rounded-full bg-gray-50 group-hover:bg-amber-50 transition-all duration-300 border-0 cursor-pointer"
+            >
+                <FaShoppingCart className="w-6 h-6 sm:w-6 sm:h-6 text-gray-700 group-hover:text-amber-600 transition" />
+                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-amber-500 to-amber-600 text-white text-xs font-bold rounded-full min-w-[20px] h-[20px] flex items-center justify-center shadow-lg animate-pulse">
+                    {cartCount} {/* Always show 0 if cart is empty */}
+                </span>
+            </button>
 
             {/* Modern Login / Profile Button - Hidden on mobile, shown on tablet/desktop */}
             <div className="hidden sm:block">

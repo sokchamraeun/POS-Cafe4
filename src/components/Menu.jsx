@@ -49,10 +49,9 @@ const initialProducts = [
 
 const categories = ["All", "Coffee", "Tea", "Cold Drinks", "Snacks"];
 
-const Menu = () => {
+const Menu = ({ cartItems, onAddToCart, onClearCart }) => {
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [products, setProducts] = useState(initialProducts);
-    const [cartItems, setCartItems] = useState({});
 
     const filteredProducts =
         selectedCategory === "All"
@@ -80,24 +79,13 @@ const Menu = () => {
             return;
         }
         
-        setCartItems((prev) => {
-            const existingItem = prev[product.id];
-            return {
-                ...prev,
-                [product.id]: {
-                    ...product,
-                    cartQty: existingItem ? existingItem.cartQty + product.qty : product.qty,
-                },
-            };
-        });
+        onAddToCart(product);
         
         setProducts((prev) =>
             prev.map((p) =>
                 p.id === product.id ? { ...p, qty: 1 } : p // Reset to 1 instead of 0
             )
         );
-        
-        alert(`Added ${product.qty} × ${product.name} to cart!`);
     };
 
     const getTotalItems = () => {
@@ -124,7 +112,7 @@ const Menu = () => {
             {getTotalItems() > 0 && (
                 <button 
                 onClick={() => {
-                    setCartItems({});
+                    onClearCart();
                     alert("Order placed successfully!");
                 }}
                 className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition w-full sm:w-auto"
@@ -275,7 +263,7 @@ const Menu = () => {
         </section>
 
         {/* Cart Sidebar - Responsive */}
-        {Object.keys(cartItems).length > 0 && (
+        {/* {Object.keys(cartItems).length > 0 && (
             <div className="fixed right-0 sm:right-4 bottom-0 sm:top-20 bg-white rounded-t-xl sm:rounded-lg shadow-xl p-4 w-full sm:w-80 max-h-96 overflow-y-auto border sm:border">
             <h3 className="font-bold text-lg mb-3">Your Cart</h3>
             {Object.values(cartItems).map((item) => (
@@ -290,7 +278,7 @@ const Menu = () => {
                 Total: ${getTotalPrice().toFixed(2)}
             </div>
             </div>
-        )}
+        )} */}
         </>
     );
 };

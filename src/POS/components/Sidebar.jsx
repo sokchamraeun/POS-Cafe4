@@ -91,7 +91,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
                                 w-full group
                                 flex items-center 
                                 ${sidebarOpen ? 'justify-start space-x-3' : 'justify-center'}
-                                px-3 py-2.5 rounded-lg
+                                px-3 py-2.5
                                 transition-all duration-200
                                 border-2
                                 ${activeTab === item.id 
@@ -145,7 +145,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
                                 shadow-lg
                                 border-2 border-amber-400/50
                             ">
-                                <span className="text-lg">👤</span>
+                                <span className="text-lg"><img src="./" alt="" /></span>
                             </div>
                             {/* Online Status Square */}
                             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-sm border border-gray-900"></div>
