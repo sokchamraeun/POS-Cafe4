@@ -1,129 +1,206 @@
 // src/hooks/useCart.js
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 const useCart = () => {
-    // Cart state management
     const [cartItems, setCartItems] = useState(() => {
-        const savedCart = localStorage.getItem('coffeeShopCart');
+        const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : {};
     });
-
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [notification, setNotification] = useState(null);
+    
+    const addTimeoutRef = useRef(null);
+    const lastAddedRef = useRef(null);
 
-    // Save to localStorage
+    // Auto-hide notification after 2 seconds
     useEffect(() => {
-        localStorage.setItem('coffeeShopCart', JSON.stringify(cartItems));
+        if (notification) {
+            const timer = setTimeout(() => {
+                setNotification(null);
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
+
+    // Save cart to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('cart', JSON.stringify(cartItems));
     }, [cartItems]);
 
     // Calculate total items
-    const getTotalCartItems = () => {
-        return Object.values(cartItems).reduce((total, item) => total + item.cartQty, 0);
-    };
+    const totalItems = Object.values(cartItems).reduce((total, item) => total + (item.cartQty || 0), 0);
 
     // Calculate total price
-    const getTotalPrice = () => {
-        return Object.values(cartItems).reduce((total, item) => total + (item.price * item.cartQty), 0);
+    const totalPrice = Object.values(cartItems).reduce((total, item) => {
+        const price = item.finalPrice || item.price || 0;
+        const quantity = item.cartQty || 0;
+        return total + (price * quantity);
+    }, 0);
+
+    // Generate unique key for customized items
+    const getItemKey = (item) => {
+        if (item.customizations) {
+            const { size, milk, sweetness, addOns } = item.customizations;
+            const custString = `${size || ''}|${milk || ''}|${sweetness || ''}|${addOns ? [...addOns].sort().join(',') : ''}`;
+            return `${item.originalId || item.id}_${custString}`;
+        }
+        return item.id.toString();
     };
 
-    // Add to cart
-    const addToCart = (product) => {
-        setCartItems(prev => {
-            const existingItem = prev[product.id];
-            return {
-                ...prev,
-                [product.id]: {
-                    ...product,
-                    cartQty: existingItem ? existingItem.cartQty + product.qty : product.qty,
-                },
-            };
+    // Remove from cart (defined first so it can be used in updateQuantity)
+    const removeFromCart = useCallback((itemId) => {
+        const item = cartItems[itemId];
+        
+        setCartItems(prevItems => {
+            const newItems = { ...prevItems };
+            delete newItems[itemId];
+            return newItems;
         });
-    };
-
-    // Add to cart and open sidebar
-    const addToCartAndOpen = (product) => {
-        addToCart(product);
-        setIsCartOpen(true);
-    };
+        
+        if (item) {
+            setNotification({
+                message: `✓ ${item.name} removed from cart`,
+                type: 'info'
+            });
+            setTimeout(() => setNotification(null), 1500);
+        }
+    }, [cartItems]);
 
     // Update quantity
-    const updateQuantity = (id, newQuantity) => {
-        if (newQuantity <= 0) {
-            const newCart = { ...cartItems };
-            delete newCart[id];
-            setCartItems(newCart);
-        } else {
-            setCartItems(prev => ({
-                ...prev,
-                [id]: {
-                    ...prev[id],
-                    cartQty: newQuantity,
-                },
-            }));
+    const updateQuantity = useCallback((itemId, newQuantity) => {
+        if (newQuantity < 1) {
+            removeFromCart(itemId);
+            return;
         }
-    };
+        
+        setCartItems(prevItems => {
+            const item = prevItems[itemId];
+            if (!item) return prevItems;
+            
+            setNotification({
+                message: `✓ ${item.name} quantity updated to ${newQuantity}`,
+                type: 'info'
+            });
+            setTimeout(() => setNotification(null), 1500);
+            
+            return {
+                ...prevItems,
+                [itemId]: {
+                    ...item,
+                    cartQty: newQuantity,
+                    lastUpdated: Date.now()
+                }
+            };
+        });
+    }, [removeFromCart]); // ✅ Added dependency
 
-    // Remove from cart
-    const removeFromCart = (id) => {
-        const newCart = { ...cartItems };
-        delete newCart[id];
-        setCartItems(newCart);
-    };
+    // Add to cart
+    const addToCart = useCallback((item) => {
+        if (addTimeoutRef.current) {
+            clearTimeout(addTimeoutRef.current);
+        }
+        
+        const itemKey = getItemKey(item);
+        const addQuantity = item.cartQty || 1;
+        
+        const now = Date.now();
+        if (lastAddedRef.current === itemKey && now - lastAddedRef.current.time < 300) {
+            console.log('Duplicate add prevented');
+            return;
+        }
+        
+        lastAddedRef.current = { key: itemKey, time: now };
+        
+        addTimeoutRef.current = setTimeout(() => {
+            setCartItems(prevItems => {
+                const existingItem = prevItems[itemKey];
+                
+                if (existingItem) {
+                    const newQuantity = existingItem.cartQty + addQuantity;
+                    
+                    setNotification({
+                        message: `✓ ${item.name} quantity updated to ${newQuantity}!`,
+                        type: 'success'
+                    });
+                    
+                    return {
+                        ...prevItems,
+                        [itemKey]: {
+                            ...existingItem,
+                            cartQty: newQuantity,
+                            lastUpdated: Date.now()
+                        }
+                    };
+                }
+                
+                setNotification({
+                    message: `✓ ${item.customizations ? item.name + ' (Customized)' : item.name} added to cart!`,
+                    type: 'success'
+                });
+                
+                return {
+                    ...prevItems,
+                    [itemKey]: {
+                        ...item,
+                        uniqueKey: itemKey,
+                        cartQty: addQuantity,
+                        addedAt: Date.now()
+                    }
+                };
+            });
+        }, 100);
+    }, []);
 
     // Clear cart
-    const clearCart = () => {
+    const clearCart = useCallback(() => {
         setCartItems({});
-    };
-
-    // Close cart sidebar
-    const closeCart = () => {
-        setIsCartOpen(false);
-    };
-
-    // Open cart sidebar
-    const openCart = () => {
-        setIsCartOpen(true);
-    };
-
-    // Toggle cart sidebar
-    const toggleCart = () => {
-        setIsCartOpen(prev => !prev);
-    };
+        setNotification({
+            message: `✓ Cart cleared successfully`,
+            type: 'info'
+        });
+        setTimeout(() => setNotification(null), 1500);
+    }, []);
 
     // Checkout
-    const checkout = () => {
-        if (Object.keys(cartItems).length > 0) {
-            const subtotal = getTotalPrice();
-            const deliveryFee = 2.00;
-            const tax = subtotal * 0.1;
-            const grandTotal = subtotal + deliveryFee + tax;
-            
-            alert(`✅ Order placed successfully!\n\n📋 Order Summary:\n━━━━━━━━━━━━━━━━━━━━\n🛒 Subtotal: $${subtotal.toFixed(2)}\n🚚 Delivery Fee: $${deliveryFee.toFixed(2)}\n📊 Tax (10%): $${tax.toFixed(2)}\n━━━━━━━━━━━━━━━━━━━━\n💰 Total: $${grandTotal.toFixed(2)}\n\nThank you for your order! ☕`);
-            
-            setCartItems({});
-            setIsCartOpen(false);
-            return true;
+    const checkout = useCallback(() => {
+        if (Object.keys(cartItems).length === 0) {
+            setNotification({
+                message: `⚠ Your cart is empty!`,
+                type: 'error'
+            });
+            setTimeout(() => setNotification(null), 2000);
+            return;
         }
-        return false;
-    };
+        setNotification({
+            message: `🎉 Order placed successfully! Total: $${totalPrice.toFixed(2)}`,
+            type: 'success'
+        });
+        clearCart();
+        setIsCartOpen(false);
+        setTimeout(() => setNotification(null), 3000);
+    }, [cartItems, totalPrice, clearCart]);
+
+    // Open/Close cart
+    const openCart = useCallback(() => {
+        setIsCartOpen(true);
+    }, []);
+
+    const closeCart = useCallback(() => {
+        setIsCartOpen(false);
+    }, []);
 
     return {
-        // State
         cartItems,
         isCartOpen,
-        
-        // Computed values
-        totalItems: getTotalCartItems(),
-        totalPrice: getTotalPrice(),
-        
-        // Actions
+        totalItems,
+        totalPrice,
+        notification,
         addToCart,
-        addToCartAndOpen,
         updateQuantity,
         removeFromCart,
         clearCart,
         closeCart,
         openCart,
-        toggleCart,
         checkout,
     };
 };

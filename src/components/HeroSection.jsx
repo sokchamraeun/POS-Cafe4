@@ -149,7 +149,7 @@
                 
                 <Link
                 to="/menu"
-                className="inline-block bg-[#d4af37] text-black font-semibold px-6 py-3 rounded-lg hover:bg-yellow-500 transition"
+                className="inline-block bg-[#d4af37] text-black font-semibold px-6 py-3 rounded hover:bg-yellow-500 transition"
                 >
                 Order Now
                 </Link>
