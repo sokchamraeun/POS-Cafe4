@@ -48,7 +48,6 @@ function App() {
         clearCart,
         closeCart,
         openCart,
-        checkout,
     } = useCart();
 
     // State for customize modal

@@ -135,10 +135,94 @@ const Checkout = () => {
         }
     };
     
+    // Helper function to get item quantity (supports both cartQty and quantity)
+    const getItemQuantity = (item) => {
+        return item.cartQty || item.quantity || 1;
+    };
+    
+    // Helper function to get item price
+    const getItemPrice = (item) => {
+        return item.finalPrice || item.price || 0;
+    };
+    
+    // Helper function to get full customization display with icons
+    const getFullCustomizationDisplay = (customizations) => {
+        if (!customizations) return null;
+        
+        const parts = [];
+        
+        // Size
+        if (customizations.size) {
+            parts.push(`📏 ${customizations.size}`);
+        }
+        
+        // Temperature
+        if (customizations.temperature === 'Iced') {
+            parts.push(`🧊 Iced`);
+        } else if (customizations.temperature === 'Hot') {
+            parts.push(`🔥 Hot`);
+        }
+        
+        // Ice level
+        if (customizations.ice && customizations.ice !== 'Regular Ice') {
+            parts.push(`🧊 ${customizations.ice}`);
+        }
+        
+        // Milk
+        if (customizations.milk && customizations.milk !== 'Whole Milk') {
+            parts.push(`🥛 ${customizations.milk}`);
+        }
+        
+        // Sweetness
+        if (customizations.sweetness) {
+            let sweetnessIcon = '🍬';
+            if (customizations.sweetness === '0%') sweetnessIcon = '🚫';
+            if (customizations.sweetness === '25%') sweetnessIcon = '🍬';
+            if (customizations.sweetness === '50%') sweetnessIcon = '🍬🍬';
+            if (customizations.sweetness === '75%') sweetnessIcon = '🍬🍬🍬';
+            if (customizations.sweetness === '100%') sweetnessIcon = '🍬🍬🍬🍬';
+            parts.push(`${sweetnessIcon} ${customizations.sweetness}`);
+        }
+        
+        return parts;
+    };
+    
+    // Helper function to get add-ons display
+    const getAddOnsDisplay = (addOns) => {
+        if (!addOns || addOns.length === 0) return null;
+        
+        const addOnIcons = {
+            'Extra Espresso Shot': '⚡',
+            'Vanilla Syrup': '🍯',
+            'Caramel Drizzle': '🍯',
+            'Hazelnut Syrup': '🍯',
+            'Whipped Cream': '🍦',
+            'Chocolate Powder': '✨',
+            'Cinnamon Powder': '✨'
+        };
+        
+        return addOns.map(addon => {
+            const icon = addOnIcons[addon] || '➕';
+            return `${icon} ${addon}`;
+        });
+    };
+    
+    // Helper function to get simple customization text for summary
+    const getCustomizationText = (customizations) => {
+        if (!customizations) return '';
+        
+        const parts = [];
+        if (customizations.size) parts.push(customizations.size);
+        if (customizations.temperature === 'Iced') parts.push('Iced');
+        if (customizations.sweetness && customizations.sweetness !== '50%') parts.push(`${customizations.sweetness}`);
+        if (customizations.milk && customizations.milk !== 'Whole Milk') parts.push(customizations.milk);
+        
+        return parts.length > 0 ? ` (${parts.join(', ')})` : '';
+    };
+    
     const handlePaymentComplete = async () => {
         setIsProcessing(true);
         
-        // Save customer info for order history
         localStorage.setItem('customerPhone', customerInfo.phone);
         localStorage.setItem('customerName', customerInfo.name);
         
@@ -153,18 +237,21 @@ const Checkout = () => {
                 id: item.id,
                 name: item.name,
                 subname: item.subname || "",
-                quantity: item.cartQty,
-                price: item.finalPrice || item.price,
-                total: ((item.finalPrice || item.price) * item.cartQty),
+                quantity: getItemQuantity(item),
+                price: getItemPrice(item),
+                total: getItemPrice(item) * getItemQuantity(item),
                 customizations: item.customizations || null
             })),
-            itemsSummary: cartItems.map(item => 
-                `${item.name} x${item.cartQty}${item.customizations?.size ? ` (${item.customizations.size})` : ''}`
-            ).join(', '),
-            subtotal: totalPrice,
+            itemsSummary: cartItems.map(item => {
+                let summary = `${item.name} x${getItemQuantity(item)}`;
+                const customText = getCustomizationText(item.customizations);
+                if (customText) summary += customText;
+                return summary;
+            }).join(', '),
+            subtotal: totalPrice || cartItems.reduce((sum, item) => sum + (getItemPrice(item) * getItemQuantity(item)), 0),
             deliveryFee: deliveryFee || 0,
             tax: tax || 0,
-            total: grandTotal,
+            total: grandTotal || cartItems.reduce((sum, item) => sum + (getItemPrice(item) * getItemQuantity(item)), 0),
             status: "Pending",
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             date: new Date().toLocaleDateString(),
@@ -271,7 +358,6 @@ const Checkout = () => {
                         
                         <div className="p-6">
                             <div className="space-y-5">
-                                {/* Name and Phone in same row */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -314,7 +400,6 @@ const Checkout = () => {
                                     </div>
                                 </div>
                                 
-                                {/* Table Number */}
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         <FaTable className="inline mr-2 text-amber-500" />
@@ -330,7 +415,6 @@ const Checkout = () => {
                                     />
                                 </div>
                                 
-                                {/* Special Instructions */}
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                                         <FaStickyNote className="inline mr-2 text-amber-500" />
@@ -347,17 +431,18 @@ const Checkout = () => {
                                 </div>
                             </div>
                             
-                            {/* Order Summary Preview */}
                             <div className="mt-6 p-4 bg-amber-50 rounded-xl">
                                 <h3 className="font-semibold text-gray-800 mb-2">Order Summary</h3>
                                 <div className="space-y-1 text-sm">
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Items:</span>
-                                        <span className="font-medium">{totalItems} item(s)</span>
+                                        <span className="font-medium">{totalItems || cartItems.length} item(s)</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-600">Total:</span>
-                                        <span className="font-bold text-amber-600">${(grandTotal || totalPrice).toFixed(2)}</span>
+                                        <span className="font-bold text-amber-600">
+                                            ${(grandTotal || totalPrice || cartItems.reduce((sum, item) => sum + (getItemPrice(item) * getItemQuantity(item)), 0)).toFixed(2)}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -395,24 +480,69 @@ const Checkout = () => {
                                 )}
                             </div>
                             
-                            <div className="space-y-3 max-h-60 overflow-y-auto">
-                                {cartItems.map((item, idx) => (
-                                    <div key={idx} className="flex justify-between text-sm py-2 border-b border-gray-100">
-                                        <span>
-                                            <span className="font-medium">{item.cartQty}x</span> {item.name}
-                                            {item.customizations?.size && ` (${item.customizations.size})`}
-                                        </span>
-                                        <span className="font-medium">
-                                            ${((item.finalPrice || item.price) * item.cartQty).toFixed(2)}
-                                        </span>
-                                    </div>
-                                ))}
+                            <div className="space-y-4 max-h-80 overflow-y-auto">
+                                {cartItems.map((item, idx) => {
+                                    const quantity = getItemQuantity(item);
+                                    const price = getItemPrice(item);
+                                    const customizations = getFullCustomizationDisplay(item.customizations);
+                                    const addOns = getAddOnsDisplay(item.customizations?.addOns);
+                                    
+                                    return (
+                                        <div key={idx} className="bg-white rounded-lg p-3 border border-gray-200">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="font-bold text-lg text-gray-800">{quantity}x</span>
+                                                        <span className="font-bold text-lg text-gray-800">{item.name}</span>
+                                                    </div>
+                                                    
+                                                    {/* Customizations */}
+                                                    {customizations && customizations.length > 0 && (
+                                                        <div className="mt-2 flex flex-wrap gap-1">
+                                                            {customizations.map((custom, i) => (
+                                                                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded-full">
+                                                                    {custom}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Add-ons */}
+                                                    {addOns && addOns.length > 0 && (
+                                                        <div className="mt-2">
+                                                            <div className="text-xs font-semibold text-gray-500 mb-1">Add-ons:</div>
+                                                            <div className="flex flex-wrap gap-1">
+                                                                {addOns.map((addon, i) => (
+                                                                    <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-purple-50 text-purple-700 text-xs rounded-full">
+                                                                        {addon}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {/* Special Instructions */}
+                                                    {item.customizations?.specialInstructions && (
+                                                        <div className="mt-2 text-xs text-amber-600 bg-amber-50 p-2 rounded-lg italic">
+                                                            📝 "{item.customizations.specialInstructions}"
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="font-bold text-amber-600 text-lg ml-4">
+                                                    ${(price * quantity).toFixed(2)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
                             
-                            <div className="border-t pt-3 mt-3">
-                                <div className="flex justify-between font-bold text-xl pt-2">
+                            <div className="border-t pt-4 mt-4">
+                                <div className="flex justify-between font-bold text-xl">
                                     <span>Total</span>
-                                    <span className="text-amber-600">${(grandTotal || totalPrice).toFixed(2)}</span>
+                                    <span className="text-amber-600">
+                                        ${(grandTotal || totalPrice || cartItems.reduce((sum, item) => sum + (getItemPrice(item) * getItemQuantity(item)), 0)).toFixed(2)}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -445,7 +575,7 @@ const Checkout = () => {
                                     
                                     <div className="text-center mb-4">
                                         <div className="text-3xl font-bold text-amber-600">
-                                            ${(grandTotal || totalPrice).toFixed(2)}
+                                            ${(grandTotal || totalPrice || cartItems.reduce((sum, item) => sum + (getItemPrice(item) * getItemQuantity(item)), 0)).toFixed(2)}
                                         </div>
                                         <div className="text-sm text-gray-500 mt-1">
                                             Scan QR code with any banking app
@@ -542,7 +672,9 @@ const Checkout = () => {
                         <div className="space-y-2 text-left max-w-md mx-auto mb-6 bg-gray-50 p-4 rounded-xl">
                             <p className="flex justify-between">
                                 <span className="text-gray-500">Total Amount:</span>
-                                <span className="font-bold text-lg">${(grandTotal || totalPrice).toFixed(2)}</span>
+                                <span className="font-bold text-lg">
+                                    ${(grandTotal || totalPrice || cartItems.reduce((sum, item) => sum + (getItemPrice(item) * getItemQuantity(item)), 0)).toFixed(2)}
+                                </span>
                             </p>
                             <p className="flex justify-between">
                                 <span className="text-gray-500">Payment Method:</span>

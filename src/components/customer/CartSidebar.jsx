@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { FaTimes, FaTrash, FaPlus, FaMinus, FaShoppingBag } from 'react-icons/fa';
+import { FaTimes, FaTrash, FaPlus, FaMinus, FaShoppingBag, FaEdit } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import CustomizeModal from '../Modals/CustomizeModal';
 
 const CartSidebar = ({ 
     isOpen, 
@@ -10,8 +11,11 @@ const CartSidebar = ({
     removeFromCart, 
     totalPrice, 
     totalItems,
+    onUpdateCartItem,
 }) => {
     const [showMenuPanel, setShowMenuPanel] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+    const [showCustomizeModal, setShowCustomizeModal] = useState(false);
     const navigate = useNavigate();
     
     if (!isOpen) return null;
@@ -40,6 +44,91 @@ const CartSidebar = ({
         removeFromCart(removeKey);
     };
 
+    const handleEditItem = (item) => {
+        // Prepare the product data for the customize modal
+        const productForEdit = {
+            id: item.originalId || item.id,
+            name: item.name,
+            subname: item.subname,
+            price: item.basePrice || item.price,
+            image: item.image,
+            hasCustomizations: true,
+            cartKey: item.uniqueKey || item.id, // Store the original cart key
+            currentQuantity: item.cartQty,
+            currentCustomizations: item.customizations,
+            customizationOptions: {
+                sizes: [
+                    { name: 'Small', price: 0, ml: 250 },
+                    { name: 'Medium', price: 0.50, ml: 350 },
+                    { name: 'Large', price: 1.00, ml: 450 }
+                ],
+                milkOptions: [
+                    { name: 'Whole Milk', price: 0 },
+                    { name: 'Almond Milk', price: 0.75 },
+                    { name: 'Oat Milk', price: 0.75 },
+                    { name: 'Soy Milk', price: 0.75 },
+                    { name: 'Coconut Milk', price: 0.75 }
+                ],
+                sweetnessLevels: [
+                    { name: '0%', value: '0%' },
+                    { name: '25%', value: '25%' },
+                    { name: '50%', value: '50%' },
+                    { name: '75%', value: '75%' },
+                    { name: '100%', value: '100%' }
+                ],
+                addOns: [
+                    { name: 'Extra Espresso Shot', price: 0.75 },
+                    { name: 'Vanilla Syrup', price: 0.50 },
+                    { name: 'Caramel Drizzle', price: 0.50 },
+                    { name: 'Whipped Cream', price: 0.25 },
+                    { name: 'Chocolate Powder', price: 0.25 },
+                    { name: 'Cinnamon Powder', price: 0.25 }
+                ],
+                temperature: [
+                    { name: 'Hot', price: 0 },
+                    { name: 'Iced', price: 0 }
+                ]
+            }
+        };
+        
+        setEditingItem(productForEdit);
+        setShowCustomizeModal(true);
+    };
+
+    const handleUpdateCustomizedItem = (customizedItem) => {
+        if (editingItem && editingItem.cartKey) {
+            // Instead of removing and adding, update the existing item
+            const updatedItem = {
+                ...customizedItem,
+                id: editingItem.id,
+                originalId: editingItem.id,
+                cartQty: customizedItem.cartQty,
+                quantity: customizedItem.cartQty,
+                uniqueKey: editingItem.cartKey, // Keep the same uniqueKey
+                customizations: customizedItem.customizations,
+                hasCustomizations: true
+            };
+            
+            // Call update function if provided
+            if (onUpdateCartItem) {
+                onUpdateCartItem(editingItem.cartKey, updatedItem);
+            } else {
+                // Fallback: remove old and add new
+                removeFromCart(editingItem.cartKey);
+                const newItem = {
+                    ...updatedItem,
+                    uniqueKey: `${customizedItem.originalId || customizedItem.id}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`
+                };
+                if (onUpdateCartItem) {
+                    onUpdateCartItem(newItem);
+                }
+            }
+        }
+        
+        setShowCustomizeModal(false);
+        setEditingItem(null);
+    };
+
     const handleCheckoutClick = () => {
         onClose();
         navigate('/checkout', {
@@ -56,10 +145,6 @@ const CartSidebar = ({
 
     return (
         <>
-            {/* NO OVERLAY - Menu remains fully interactive */}
-            {/* Removed the overlay div completely */}
-            
-            {/* Sidebar only - slides in from right */}
             <div className="fixed right-0 top-0 h-full w-full sm:w-[450px] bg-white shadow-2xl z-50 flex flex-col animate-slideIn">
                 {/* Header */}
                 <div className="flex-shrink-0 flex items-center justify-between p-4 border-b bg-gradient-to-r from-amber-500 to-amber-600 text-white">
@@ -81,7 +166,7 @@ const CartSidebar = ({
                     </div>
                 </div>
 
-                {/* Menu Panel - Shows hint */}
+                {/* Menu Panel */}
                 {showMenuPanel && (
                     <div className="flex-shrink-0 border-b bg-gradient-to-r from-amber-50 to-yellow-50 p-4">
                         <div className="text-center">
@@ -112,7 +197,7 @@ const CartSidebar = ({
                         </div>
                     ) : (
                         Object.values(cartItems).map((item) => (
-                            <div key={item.uniqueKey || item.id} className="bg-gray-50 rounded-lg p-3 flex gap-3">
+                            <div key={item.uniqueKey || item.id} className="bg-gray-50 rounded-lg p-3 flex gap-3 hover:shadow-md transition-all">
                                 <div className="w-20 h-20 rounded-lg overflow-hidden bg-white flex-shrink-0">
                                     <img 
                                         src={item.image} 
@@ -141,17 +226,27 @@ const CartSidebar = ({
                                                 </div>
                                             )}
                                         </div>
-                                        <button 
-                                            onClick={() => handleRemoveItem(item)}
-                                            className="text-red-500 hover:text-red-700 transition p-1 flex-shrink-0"
-                                        >
-                                            <FaTrash className="w-3 h-3" />
-                                        </button>
+                                        <div className="flex gap-1">
+                                            <button 
+                                                onClick={() => handleEditItem(item)}
+                                                className="text-blue-500 hover:text-blue-700 transition p-1 flex-shrink-0"
+                                                title="Edit item"
+                                            >
+                                                <FaEdit className="w-3 h-3" />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleRemoveItem(item)}
+                                                className="text-red-500 hover:text-red-700 transition p-1 flex-shrink-0"
+                                                title="Remove item"
+                                            >
+                                                <FaTrash className="w-3 h-3" />
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div className="mt-2 flex items-center justify-between">
                                         <div className="text-amber-600 font-bold">
-                                            ${(item.finalPrice || item.price).toFixed(2)}
+                                            ${(item.finalPrice || item.price).toFixed(2)} each
                                         </div>
                                         
                                         <div className="flex items-center gap-2 bg-white rounded-lg border px-2 py-1">
@@ -181,7 +276,7 @@ const CartSidebar = ({
                     )}
                 </div>
 
-                {/* Footer - Simplified without promo code */}
+                {/* Footer */}
                 {Object.keys(cartItems).length > 0 && (
                     <div className="flex-shrink-0 bg-white border-t p-4 shadow-lg">
                         <div className="flex justify-between items-center mb-4">
@@ -203,6 +298,22 @@ const CartSidebar = ({
                     </div>
                 )}
             </div>
+
+            {/* Customize Modal for Editing */}
+            {showCustomizeModal && editingItem && (
+                <CustomizeModal
+                    product={editingItem}
+                    isEditing={true}
+                    existingCustomizations={editingItem.currentCustomizations}
+                    existingQuantity={editingItem.currentQuantity}
+                    existingCartKey={editingItem.cartKey}
+                    onClose={() => {
+                        setShowCustomizeModal(false);
+                        setEditingItem(null);
+                    }}
+                    onAddToCart={handleUpdateCustomizedItem}
+                />
+            )}
 
             <style>{`
                 @keyframes slideIn {
