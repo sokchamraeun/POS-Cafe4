@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FaTimes, FaTrash, FaPlus, FaMinus, FaShoppingBag } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 
 const CartSidebar = ({ 
     isOpen, 
@@ -9,9 +10,9 @@ const CartSidebar = ({
     removeFromCart, 
     totalPrice, 
     totalItems,
-    onCheckout,
 }) => {
     const [showMenuPanel, setShowMenuPanel] = useState(false);
+    const navigate = useNavigate();
     
     if (!isOpen) return null;
 
@@ -30,13 +31,27 @@ const CartSidebar = ({
         return customizations;
     };
 
-    const deliveryFee = 2.00;
-    const tax = totalPrice * 0.1;
-    const grandTotal = totalPrice + deliveryFee + tax;
+    const deliveryFee = 0;
+    const tax = 0;
+    const grandTotal = totalPrice;
 
     const handleRemoveItem = (item) => {
         const removeKey = item.uniqueKey || item.id;
         removeFromCart(removeKey);
+    };
+
+    const handleCheckoutClick = () => {
+        onClose();
+        navigate('/checkout', {
+            state: {
+                cartItems: Object.values(cartItems),
+                totalPrice: totalPrice,
+                totalItems: totalItems,
+                deliveryFee: deliveryFee,
+                tax: tax,
+                grandTotal: grandTotal
+            }
+        });
     };
 
     return (
@@ -166,35 +181,19 @@ const CartSidebar = ({
                     )}
                 </div>
 
-                {/* Footer */}
+                {/* Footer - Simplified without promo code */}
                 {Object.keys(cartItems).length > 0 && (
-                    <div className="flex-shrink-0 bg-white border-t p-4 space-y-3 shadow-lg">
-                        <div className="flex gap-2">
-                            <input type="text" placeholder="Promo code" className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-amber-500 focus:border-amber-500 outline-none" />
-                            <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-sm font-semibold">Apply</button>
+                    <div className="flex-shrink-0 bg-white border-t p-4 shadow-lg">
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="font-bold text-gray-800 text-lg">Total</span>
+                            <span className="font-bold text-2xl text-amber-600">${grandTotal.toFixed(2)}</span>
                         </div>
 
                         <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-600">Subtotal</span>
-                                <span className="font-semibold text-gray-800">${totalPrice.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-500">Delivery Fee</span>
-                                <span className="text-gray-600">${deliveryFee.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-gray-500">Tax (10%)</span>
-                                <span className="text-gray-600">${tax.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between items-center pt-2 border-t border-dashed">
-                                <span className="font-bold text-gray-800">Total</span>
-                                <span className="font-bold text-xl text-amber-600">${grandTotal.toFixed(2)}</span>
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <button onClick={() => { onCheckout(); }} className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-3 rounded-lg hover:from-amber-600 hover:to-amber-700 transition shadow-md">
+                            <button 
+                                onClick={handleCheckoutClick} 
+                                className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-3 rounded-lg hover:from-amber-600 hover:to-amber-700 transition shadow-md"
+                            >
                                 Checkout
                             </button>
                             <button onClick={onClose} className="w-full text-gray-600 hover:text-amber-600 transition text-sm font-semibold py-2">

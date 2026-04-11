@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import CustomizeModal from "./Modals/CustomizeModal";
 import { products, categories } from "../data/products";
-import CartSidebar from "./CartSidebar";
+import CartSidebar from "./customer/CartSidebar";
 
 const Menu = ({ cartItems, onAddToCart, onClearCart, onUpdateCartItem, onRemoveFromCart }) => {
     const [selectedCategory, setSelectedCategory] = useState("All");
@@ -121,24 +121,7 @@ const Menu = ({ cartItems, onAddToCart, onClearCart, onUpdateCartItem, onRemoveF
 
     return (
         <>
-        <header className="sticky top-0 z-30 bg-white shadow-md">
-            <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-[#d4af37]">Coffee Shop</h1>
-                <button 
-                    onClick={() => setIsCartOpen(true)}
-                    className="relative p-2 hover:bg-gray-100 rounded-full transition"
-                >
-                    <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 6M17 13l1.5 6M9 21h6M12 18v3" />
-                    </svg>
-                    {getTotalItems() > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-[#d4af37] text-black text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                            {getTotalItems()}
-                        </span>
-                    )}
-                </button>
-            </div>
-        </header>
+ 
 
         <section className="max-w-7xl mx-auto px-4 md:px-6 py-12">
             {/* Cart Summary Bar */}

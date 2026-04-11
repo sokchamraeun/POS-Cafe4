@@ -5,6 +5,7 @@ import Menu from "./components/Menu";
 import Footer from "./components/Footer";
 import Dashboard from "./POS/Dashboard";
 import CartSidebar from "./components/customer/CartSidebar";
+import Checkout from "./components/Chechout";
 import useCart from "./hooks/useCart";
 import Location from "./components/Location";
 import CustomizeModal from "./components/Modals/CustomizeModal";
@@ -79,6 +80,11 @@ function App() {
         }, 500);
     };
 
+    // Handle checkout navigation
+    const handleCheckout = () => {
+        closeCart();
+    };
+
     return (
         <BrowserRouter>
             <div className="min-h-screen flex flex-col relative">
@@ -106,7 +112,7 @@ function App() {
                                 removeFromCart={removeFromCart}
                                 totalPrice={totalPrice}
                                 totalItems={totalItems}
-                                onCheckout={checkout}
+                                onCheckout={handleCheckout}
                             />
                             {showCustomizeModal && selectedProduct && (
                                 <CustomizeModal
@@ -146,7 +152,7 @@ function App() {
                                 removeFromCart={removeFromCart}
                                 totalPrice={totalPrice}
                                 totalItems={totalItems}
-                                onCheckout={checkout}
+                                onCheckout={handleCheckout}
                             />
                             {showCustomizeModal && selectedProduct && (
                                 <CustomizeModal
@@ -164,6 +170,19 @@ function App() {
                         </>
                     } />
                     
+                    {/* Checkout page */}
+                    <Route path="/checkout" element={
+                        <>
+                            <Navbar 
+                                cartCount={totalItems} 
+                                onCartClick={openCart}
+                                hideCartIcon={true}
+                            />
+                            <Checkout />
+                            <Footer />
+                        </>
+                    } />
+                    
                     {/* Dashboard page */}
                     <Route path="/dashboard" element={<Dashboard />} />
                     
@@ -176,7 +195,7 @@ function App() {
                                     <div className="bg-white rounded-lg shadow-xl p-8">
                                         <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">Welcome Back! 👋</h1>
                                         <p className="text-center text-gray-500 mb-8">Sign in to continue</p>
-                                        <form className="space-y-5">
+                                        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                                                 <input 
@@ -219,7 +238,7 @@ function App() {
                                 removeFromCart={removeFromCart}
                                 totalPrice={totalPrice}
                                 totalItems={totalItems}
-                                onCheckout={checkout}
+                                onCheckout={handleCheckout}
                             />
                             {notification && (
                                 <Notification 
@@ -244,7 +263,7 @@ function App() {
                                 removeFromCart={removeFromCart}
                                 totalPrice={totalPrice}
                                 totalItems={totalItems}
-                                onCheckout={checkout}
+                                onCheckout={handleCheckout}
                             />
                             {notification && (
                                 <Notification 
@@ -317,7 +336,7 @@ function App() {
                                 removeFromCart={removeFromCart}
                                 totalPrice={totalPrice}
                                 totalItems={totalItems}
-                                onCheckout={checkout}
+                                onCheckout={handleCheckout}
                             />
                             {notification && (
                                 <Notification 
@@ -354,7 +373,7 @@ function App() {
                                 removeFromCart={removeFromCart}
                                 totalPrice={totalPrice}
                                 totalItems={totalItems}
-                                onCheckout={checkout}
+                                onCheckout={handleCheckout}
                             />
                             {notification && (
                                 <Notification 
