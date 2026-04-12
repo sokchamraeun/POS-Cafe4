@@ -11,6 +11,7 @@ import InventoryTable from './components/InventoryTable';
 import CustomersTable from './components/CustomersTable';
 import AnalyticsTab from './components/AnalyticsTab';
 import SettingsTab from './components/SettingsTab';
+import Product from './components/Product';
 import { stats, recentOrders, topProducts, weeklySales, days, inventory, customers } from './data/dashboardData';
 
 // Product Data with Real Coffee Images (Unsplash URLs)
@@ -21,7 +22,9 @@ const products = [
         description: "Mondulikiri Phum", 
         price: 3.50, 
         image: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400&h=400&fit=crop",
-        isBest: true 
+        isBest: true,
+        category: "Coffee",
+        hasCustomizations: false
     },
     { 
         id: 2, 
@@ -29,7 +32,9 @@ const products = [
         description: "Premium Blend", 
         price: 3.00, 
         image: "https://images.unsplash.com/photo-1551030173-122aabc4489c?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: false
     },
     { 
         id: 3, 
@@ -37,7 +42,9 @@ const products = [
         description: "Italian Style", 
         price: 3.50, 
         image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: true
     },
     { 
         id: 4, 
@@ -45,7 +52,9 @@ const products = [
         description: "Smooth & Creamy", 
         price: 3.80, 
         image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: true
     },
     { 
         id: 5, 
@@ -53,7 +62,9 @@ const products = [
         description: "Chocolate Espresso", 
         price: 4.00, 
         image: "https://images.unsplash.com/photo-1578314675249-a6910f80cc4e?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: true
     },
     { 
         id: 6, 
@@ -61,7 +72,9 @@ const products = [
         description: "Traditional Style", 
         price: 3.90, 
         image: "https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: true
     },
     { 
         id: 7, 
@@ -69,7 +82,9 @@ const products = [
         description: "Smooth & Rich", 
         price: 3.70, 
         image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: true
     },
     { 
         id: 8, 
@@ -77,7 +92,9 @@ const products = [
         description: "With Whiskey", 
         price: 5.50, 
         image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: false
     },
     { 
         id: 9, 
@@ -85,7 +102,9 @@ const products = [
         description: "With Whipped Cream", 
         price: 4.20, 
         image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: true
     },
     { 
         id: 10, 
@@ -93,7 +112,9 @@ const products = [
         description: "Sweet & Creamy", 
         price: 4.30, 
         image: "https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: true
     },
     { 
         id: 11, 
@@ -101,7 +122,9 @@ const products = [
         description: "Nutty & Sweet", 
         price: 4.30, 
         image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: true
     },
     { 
         id: 12, 
@@ -109,7 +132,9 @@ const products = [
         description: "Smooth Vanilla", 
         price: 4.30, 
         image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=400&fit=crop",
-        isBest: false 
+        isBest: false,
+        category: "Coffee",
+        hasCustomizations: true
     },
 ];
 
@@ -232,6 +257,8 @@ const Dashboard = () => {
                 return <AnalyticsTab />;
             case 'settings':
                 return <SettingsTab />;
+            case 'product':
+                return <Product />;
             default:
                 return null;
         }

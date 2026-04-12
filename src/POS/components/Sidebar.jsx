@@ -7,6 +7,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
         { id: 'overview', label: 'Overview', icon: '📊' },
         { id: 'orders', label: 'Orders', icon: '📦' },
         { id: 'products', label: 'Products', icon: '☕' },
+        { id: 'product', label: 'Product Management', icon: '✏️' },
         { id: 'inventory', label: 'Inventory', icon: '📋' },
         { id: 'customers', label: 'Customers', icon: '👥' },
         { id: 'analytics', label: 'Analytics', icon: '📈' },
@@ -43,8 +44,10 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
                 `}>
                     {sidebarOpen && (
                         <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br rounded-lg flex items-center justify-center shadow-lg   border-amber-400/30">
-                                <span className="text-xl"><img src="./public/image/cup.png" alt="" /></span>
+                            <div className="w-10 h-10 bg-gradient-to-br rounded-lg flex items-center justify-center shadow-lg border-amber-400/30">
+                                <span className="text-xl">
+                                    <img src="/image/cup.png" alt="Logo" className="w-8 h-8 object-contain" />
+                                </span>
                             </div>
                             <div>
                                 <span className="font-bold text-base tracking-tight">CoffeePOS</span>
@@ -55,7 +58,9 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
                     
                     {!sidebarOpen && (
                         <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex items-center justify-center shadow-lg border border-amber-400/30">
-                            <span className="text-xl">☕</span>
+                            <span className="text-xl">
+                                <img src="/image/cup.png" alt="Logo" className="w-6 h-6 object-contain" />
+                            </span>
                         </div>
                     )}
                     
@@ -145,7 +150,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen, activeTab, setActiveTab }) => {
                                 shadow-lg
                                 border-2 border-amber-400/50
                             ">
-                                <span className="text-lg"><img src="./" alt="" /></span>
+                                <span className="text-lg font-bold text-white">A</span>
                             </div>
                             {/* Online Status Square */}
                             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-sm border border-gray-900"></div>
